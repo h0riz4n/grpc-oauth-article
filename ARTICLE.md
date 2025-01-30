@@ -166,7 +166,7 @@ message File {
 ![Скомпилированные Java классы](image-1.png)
 
 ### area-server
-Добавим следующие зависимости в pom.xml
+Добавим следующие зависимости в pom.xml:
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -290,7 +290,7 @@ message File {
 </project>
 ```
 
-Обратите внимание на следующую зависимость
+Обратите внимание на следующую зависимость:
 ```
 <dependency>
 	<groupId>ru.acgnn.grpc</groupId>
@@ -305,7 +305,7 @@ message File {
 ![Структура проекта](image-2.png)
 
 
-Определим Property-класс в пакете ru.acgnn.area_server.property
+Определим Property-класс в пакете ru.acgnn.area_server.property.
 ```
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -379,7 +379,7 @@ public class OAuth2ResourceServerProperty {
 }
 ```
 
-Напишим конвертор JWT токенов для корректного отбора ролей в пакете ru.acgnn.area_server.convertor.
+Напишем конвертор JWT токенов для корректного отбора ролей в пакете ru.acgnn.area_server.convertor.
 ```
 import java.util.ArrayList;
 import java.util.Collection;
@@ -540,7 +540,7 @@ public class SecurityConfig {
 }
 ```
 
-Зависимость grpc-spring-boot-starter поддерживает spring-security изначально, поэтому можно просто использовать известные аннотации для защиты своего приложения. Объявляется Bean AuthenticationManager, чтобы в зависимости от эмитента токена корректно выполнялась валидация токена, конвертор ролей для всех одинаковый. Благодаря конфигурации выше, OAuth 2.0 объявлен на уровне Rest API методов и gRPC. Дальше необходимо, чтобы на уровне gRPC можно было извлекать аутентификацию пользователя из SpringSecurityContext, для этого объявим 2 interceptor-класса, один из для логгирования запросов, другой - для добавлена аутентификации пользователя в SpringSecurityContext. 
+Зависимость grpc-spring-boot-starter поддерживает spring-security изначально, поэтому можно просто использовать известные аннотации для защиты своего приложения. Объявляется Bean AuthenticationManager, чтобы в зависимости от эмитента токена корректно выполнялась его валидация, конвертор ролей для всех одинаковый. Благодаря конфигурации выше, OAuth 2.0 объявлен на уровне Rest API методов и gRPC. Дальше необходимо, чтобы на уровне gRPC можно было извлекать аутентификацию пользователя из SpringSecurityContext, для этого объявим 2 interceptor-класса, один из для логгирования запросов, другой - для добавлена аутентификации пользователя в SpringSecurityContext. 
 
 SecurityInterceptor в пакете ru.acgnn.area_server.interceptor.grpc:
 ```
