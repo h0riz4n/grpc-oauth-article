@@ -540,7 +540,7 @@ public class SecurityConfig {
 }
 ```
 
-Зависимость grpc-spring-boot-starter поддерживает spring-security изначально, поэтому можно просто использовать известные аннотации для защиты своего приложения. Объявляется Bean AuthenticationManager, чтобы в зависимости от эмитента токена корректно выполнялась его валидация, конвертор ролей для всех одинаковый. Благодаря конфигурации выше, OAuth 2.0 объявлен на уровне Rest API методов и gRPC. Дальше необходимо, чтобы на уровне gRPC можно было извлекать аутентификацию пользователя из SpringSecurityContext, для этого объявим 2 interceptor-класса, один из для логгирования запросов, другой - для добавлена аутентификации пользователя в SpringSecurityContext. 
+Зависимость grpc-spring-boot-starter поддерживает spring-security изначально, поэтому можно просто использовать известные аннотации для защиты своего приложения. Объявляется Bean AuthenticationManager, чтобы в зависимости от эмитента токена корректно выполнялась его валидация, конвертор ролей для всех одинаковый. Благодаря конфигурации выше, OAuth 2.0 объявлен на уровне Rest API методов и gRPC. Дальше необходимо, чтобы на уровне gRPC можно было извлекать аутентификацию пользователя из SpringSecurityContext, для этого объявим два interceptor-класса, один из них - для логгирования запросов, другой - для добавления аутентификации пользователя в SpringSecurityContext. 
 
 SecurityInterceptor в пакете ru.acgnn.area_server.interceptor.grpc:
 ```
@@ -610,7 +610,7 @@ public class LogInterceptor implements ServerInterceptor {
 }
 ```
 
-После этого возникает возможность внутри сервисов извлекать аутентификацию пользователя, обращаясь к SpringSecurityContextHolder
+После этого возникает возможность внутри сервисов извлекать аутентификацию пользователя, обращаясь к SpringSecurityContextHolder:
 ```
 public AreaEntity getById(UUID id) {
     JwtAuthenticationToken auth = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
