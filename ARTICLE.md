@@ -11,7 +11,7 @@ gRPC (Google Remote Procedure Calls) - это современная и высо
 Простыми словами, OAuth 2.0 - протокол авторизации, позволяющий выдать одному сервису права на доступ к ресурсам пользователя в другом сервисе. Более подробную информацию можете узнать на просторах интернета. Статей на тему OAuth 2.0 достаточно много, и нет особого смысла заострять внимание на всеми разобранный материал.
 
 ## Почему их сложно совместить?
-OAuth 2.0 и gRPC "не дружат" из под коробки в Spring Framework, для их совместимости необходимо будет немножно покапаться в конфигурациях. Сложнее всего реализовать авторизацию для нескольких клиентов, в случаях, когда один для пользвателей, а другой - для администраторов. Необходимо правильно настроить конвертор для JWT токенов, чтобы корректно отбирать роли.
+OAuth 2.0 и gRPC "не дружат" из коробки в Spring Framework, для их совместимости необходимо будет немножно покапаться в конфигурациях. Сложнее всего реализовать авторизацию для нескольких клиентов, в случаях, когда один для пользвателей, а другой - для администраторов. Необходимо правильно настроить конвертор для JWT токенов, чтобы корректно отбирать роли.
 
 ## Техническая часть
 Приступим к разработке. Проект состоит из микросервисов:
@@ -168,126 +168,22 @@ message File {
 ### area-server
 Добавим следующие зависимости в pom.xml:
 ```
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.6</version>
-		<relativePath/>
-	</parent>
-	<groupId>ru.acgnn</groupId>
-	<artifactId>area-server</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>area-server</name>
-	<description>Area Spring Boot Application</description>
-	<properties>
-		<java.version>17</java.version>
-		<mapstruct.version>1.6.2</mapstruct.version>
-		<grpc.version>3.1.0.RELEASE</grpc.version>
-		<hibernate.version>6.4.1.FINAL</hibernate.version>
-		<spring-cloud.version>2023.0.3</spring-cloud.version>
-	</properties>
-	<dependencies>
-		<dependency>
-            <groupId>net.devh</groupId>
-            <artifactId>grpc-server-spring-boot-starter</artifactId>
-			<version>${grpc.version}</version>
-        </dependency>
+<dependency>
+    <groupId>net.devh</groupId>
+    <artifactId>grpc-server-spring-boot-starter</artifactId>
+	<version>${grpc.version}</version>
+</dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
+<dependency>
+	<groupId>ru.acgnn.grpc</groupId>
+	<artifactId>grpc-interface</artifactId>
+	<version>1.0.0</version>
+</dependency>
 
-		<dependency>
-			<groupId>ru.acgnn.grpc</groupId>
-			<artifactId>grpc-interface</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-oauth2-authorization-server</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-spatial</artifactId>
-			<version>${hibernate.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.mapstruct</groupId>
-			<artifactId>mapstruct</artifactId>
-			<version>${mapstruct.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.mapstruct</groupId>
-			<artifactId>mapstruct-processor</artifactId>
-			<version>${mapstruct.version}</version>
-		</dependency>
-	</dependencies>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<type>pom</type>
-				<scope>import</scope>
-				<version>${spring-cloud.version}</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-
-</project>
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-oauth2-authorization-server</artifactId>
+</dependency>
 ```
 
 Обратите внимание на следующую зависимость:
