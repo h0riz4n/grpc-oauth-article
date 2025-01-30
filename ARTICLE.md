@@ -82,7 +82,7 @@ message File {
 ```
 
 
-Напишем pom.xml, чтобы проект правильно собирался и скомпилировался.
+Напишем pom.xml, чтобы проект правильно собрался и скомпилировался.
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
