@@ -642,4 +642,24 @@ public class AreaEntity {
 
 Сущность выглядит следующим образом. На данный момент, особого внимания ей уделяться не будет. 
 
+В application.properties укажите следующие настройки:
+```
+# Service properties
+spring.application.name=area-server
+server.port=0
+server.servlet.context-path=/
+
+# Discovery client properties
+eureka.client.service-url.default-zone=http://localhost:8761/eureka
+
+# gRPC-server properties
+grpc.server.port=0
+```
+Это будет необходимо, чтобы мы могли обращаться к микросервису по его название, а не по адрессу и порту.
+
+Так выглядит структура микросервиса:
+![alt text](../image-2.png)
+
 Теперь мы увидели как на grpc-server'е реализуется бизнес-логика приложения.
+
+### area-client
