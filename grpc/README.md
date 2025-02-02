@@ -545,7 +545,7 @@ public class GprcHandler {
 }
 ```
 
-Пришла идея реализовать маппинг HttpStatus с GrpsStatus с помощь switch-case. Не очень креативно, но эффективно! Этот хендлер работает только для gRPC эндпоинтов, для HTTP ручек он работаеть не будет, будет лучше создать оттдельный handler-класс, аннотируемый аннотацией RestControllerAdvice.
+Пришла идея реализовать маппинг HttpStatus с GrpsStatus с помощь switch-case. Не очень креативно, но эффективно! Этот хендлер работает только для gRPC эндпоинтов, для HTTP ручек он работаеть не будет, будет лучше создать оттдельный handler-класс, аннотируемый аннотацией @RestControllerAdvice.
 
 ```
 import java.time.LocalDateTime;
@@ -663,3 +663,146 @@ grpc.server.port=0
 Теперь мы увидели как на grpc-server'е реализуется бизнес-логика приложения.
 
 ### area-client
+В этом микросервисе рассмотрим как обращаться к gRPC-эндпоинтам нашего сервиса.
+
+Добавляем зависимости:
+```
+<dependency>
+	<groupId>org.springdoc</groupId>
+	<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+	<version>${springdoc.version}</version>
+</dependency>
+
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
+
+<dependency>
+	<groupId>org.projectlombok</groupId>
+	<artifactId>lombok</artifactId>
+	<optional>true</optional>
+</dependency>
+
+<!-- Наш gRPC-interface -->
+<dependency>
+	<groupId>ru.acgnn.grpc</groupId>
+	<artifactId>grpc-interface</artifactId>
+	<version>1.0.0</version>
+</dependency>
+
+<dependency>
+	<groupId>org.mapstruct</groupId>
+	<artifactId>mapstruct</artifactId>
+	<version>${mapstruct.version}</version>
+</dependency>
+
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-test</artifactId>
+	<scope>test</scope>
+</dependency>
+```
+
+В application.properties укажем следующие параметры:
+```
+# Discovery client properties
+eureka.client.service-url.default-zone=http://localhost:8761/eureka
+
+grpc.client.area.address=discovery:///area-server
+grpc.client.area.negotiation-type=plaintext
+grpc.client.area.enable-keep-alive=true
+```
+grpc.client.area.address - в этом параметре мы указываем, что к клиенту под названием "area" будем обращаться по названию микросервиса через discovery-server (Eureka Server).
+
+Структура сервиса будет выглядить следующим образом:
+![alt text](image.png)
+
+Рассмотрим, как обращаться к grpc-server'у:
+```
+import java.io.IOException;
+import java.util.UUID;
+
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Empty;
+
+import io.grpc.CallCredentials;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.client.inject.GrpcClient;
+import net.devh.boot.grpc.client.security.CallCredentialsHelper;
+import ru.acgnn.area_client.mapper.ApiMapper;
+import ru.acgnn.grpc.Area;
+import ru.acgnn.grpc.AreaId;
+import ru.acgnn.grpc.AreaList;
+import ru.acgnn.grpc.AreaServiceGrpc.AreaServiceBlockingStub;
+import ru.acgnn.grpc.AreaToCreate;
+import ru.acgnn.grpc.File;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ApiService {
+
+    @GrpcClient("area")
+    private AreaServiceBlockingStub grpcClient;
+    private final ApiMapper apiMapper;
+
+    public Area getById(UUID id) {
+        return grpcClient
+            .withCallCredentials(bearerAuth())
+            .getAreaById(AreaId.newBuilder().setId(id.toString()).build());
+    }
+
+    public AreaList getAll() {
+        return grpcClient
+            .withCallCredentials(bearerAuth())
+            .getAreas(Empty.getDefaultInstance());
+    }
+    
+    public UUID create(AreaToCreate area, MultipartFile file) {
+        try {
+            grpcClient
+                .withCallCredentials(bearerAuth())
+                .saveFile(
+                    File.newBuilder()
+                        .setContent(ByteString.copyFrom(file.getBytes(), 100, file.getBytes().length))
+                        .setContentType(file.getContentType())
+                        .build()
+                );
+        } catch (IOException e) {
+            log.debug("IOException: {}", e.getMessage());
+        }
+        return UUID.fromString(grpcClient
+            .withCallCredentials(bearerAuth())
+            .createArea(area)
+            .getId()
+        );
+    }
+
+    private CallCredentials bearerAuth() {
+        JwtAuthenticationToken token = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        return CallCredentialsHelper.bearerAuth(() -> token.getToken().getTokenValue());
+    }
+}
+```
+
+Объявляем AreaServiceBlockingStub grpcClient, и с помощью аннотации @GrpcClient указываем, что за клиент. В данном микросервисе разобрали, как обращаться к нашему серверу через Eureka-Server.
+
+## Итог
+Таким образом, мы разобрали как реализовать микросервисную архитектуру на Java с помощью Spring Boot, Spring Cloud и т.д., где основным средством коммуникации является gRPC.
